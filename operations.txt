@@ -1,0 +1,27 @@
+Items ::
+GetItemsByCategory                     -- NEW
+AddItems
+EditItem
+DeleteItem
+
+
+Suppliers :: 
+GetSuppliers
+AddSuppliers
+EditSupplier
+DeleteSupplier
+
+
+Suppliers_Remarks ::
+GetSupplierRemarks
+AddSupplierRemarks
+EditSupplierRemark
+DeleteSupplierRemark
+
+
+Suppliers_Items ::
+GetSupplierItems
+AddSupplierItems
+DeleteSuplierItem
+EditSupplierItem
+EditSupplierItemPrice

@@ -1,0 +1,152 @@
+TABLE : units
+unit_id TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL
+unit_name VARCHAR(100) NOT NULL
+is_hidden TINYINT NOT NULL
+
+
+
+TABLE : item_categories
+item_category_id TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL
+item_category_name VARCHAR(100) NOT NULL
+is_hidden TINYINT NOT NULL
+
+
+
+TABLE : items
+item_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL
+item_category_id TINYINT UNSIGNED NOT NULL               
+item_name VARCHAR(200) NOT NULL
+is_hidden TINYINT NOT NULL
+INDEX(item_category_id)             
+
+
+
+TABLE : items_units
+unit_id TINYINT UNSIGNED NOT NULL
+item_id INT UNSIGNED NOT NULL
+INDEX(item_id)
+
+
+
+TABLE : items_varieties
+item_variety_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL
+item_variety_name VARCHAR(100) NOT NULL
+item_id INT UNSIGNED NOT NULL
+is_hidden TINYINT NOT NULL
+INDEX(item_id)
+
+
+
+TABLE : items_varieties_price_history
+item_variety_id INT UNSIGNED NOT NULL
+item_id INT UNSIGNED NOT NULL
+unit_id TINYINT UNSIGNED NOT NULL
+aalgro_price_1 DECIMAL(6,2) 
+aalgro_price_2 DECIMAL(6,2) 
+aalgro_price_3 DECIMAL(6,2) 
+updated_at DATE NOT NULL
+INDEX(item_id)
+PRIMARY KEY(item_variety_id,unit_id)
+
+
+
+TABLE : supplier_categories
+supplier_category_id TINYINT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL
+supplier_category_name VARCHAR(50) NOT NULL
+is_hidden TINYINT NOT NULL
+
+
+
+TABLE : suppliers
+supplier_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL
+supplier_category_id TINYINT UNSIGNED NOT NULL
+supplier_name VARCHAR(50) NOT NULL
+supplier_phone VARCHAR(15)
+supplier_address VARCHAR(200)
+supplier_added_at DATE NOT NULL
+is_hidden TINYINT NOT NULL
+INDEX(supplier_category_id)
+
+
+
+TABLE : suppliers_remarks
+supplier_remark_id TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL
+supplier_id INT UNSIGNED NOT NULL
+supplier_remark VARCHAR(500) NOT NULL
+INDEX(supplier_id)
+
+
+
+TABLE : suppliers_items
+supplier_id INT UNSIGNED NOT NULL
+item_id INT UNSIGNED NOT NULL
+item_variety_id INT UNSIGNED NOT NULL
+unit_id TINYINT UNSIGNED NOT NULL
+item_price DECIMAL(6,2) NOT NULL
+item_min_units INT UNSIGNED
+item_max_units INT UNSIGNED
+supplier_item_rating TINYINT UNSIGNED
+is_hidden TINYINT NOT NULL
+INDEX(supplier_id)
+INDEX(item_id)
+PRIMARY KEY(item_variety_id,unit_id)
+
+
+
+TABLE : suppliers_items_price_history
+supplier_id INT UNSIGNED NOT NULL
+item_id INT UNSIGNED NOT NULL
+item_variety_id INT UNSIGNED NOT NULL
+unit_id TINYINT UNSIGNED NOT NULL
+item_price DECIMAL(6,2) NOT NULL
+updated_at DATE NOT NULL
+INDEX(supplier_id)
+INDEX(item_id)
+
+
+
+TABLE : client_categories
+client_category_id TINYINT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL
+client_category_name VARCHAR(50) NOT NULL
+is_hidden TINYINT NOT NULL
+
+
+
+TABLE : clients
+client_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL
+client_category_id TINYINT UNSIGNED NOT NULL
+client_name VARCHAR(50) NOT NULL
+client_phone VARCHAR(15)
+client_address VARCHAR(200)
+client_added_at INT UNSIGNED NOT NULL
+is_hidden TINYINT NOT NULL
+INDEX(client_category_id)
+
+
+
+TABLE : clients_items
+client_id INT UNSIGNED NOT NULL
+item_id INT UNSIGNED NOT NULL
+item_variety_id INT UNSIGNED NOT NULL
+unit_id TINYINT UNSIGNED NOT NULL
+item_fixed_price DECIMAL(6,2) 
+item_var_price DECIMAL(6,2) 
+updated_at INT UNSIGNED NOT NULL
+is_hidden TINYINT NOT NULL
+INDEX(supplier_id)
+INDEX(item_id)
+PRIMARY KEY(item_variety_id,unit_id)
+
+
+
+TABLE : clients_items_price_history
+client_id INT UNSIGNED NOT NULL
+item_id INT UNSIGNED NOT NULL
+item_variety_id INT UNSIGNED NOT NULL
+unit_id TINYINT UNSIGNED NOT NULL
+item_fixed_price DECIMAL(6,2) NOT NULL
+item_var_price DECIMAL(6,2) NOT NULL
+updated_at INT UNSIGNED NOT NULL
+INDEX(client_id)
+INDEX(item_id)
+              

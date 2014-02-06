@@ -1,4 +1,4 @@
-<!-- 
+<!--
 <?php
 	/*require_once('sessionValidator.php');
 
@@ -44,6 +44,7 @@
 <link rel="stylesheet" type="text/css" href="css/items.css" />
 <link rel="stylesheet" type="text/css" href="css/suppliers.css" />
 <link rel="stylesheet" type="text/css" href="css/pricing.css" />
+<link rel="stylesheet" type="text/css" href="css/clients.css" />
 <link rel="stylesheet" type="text/css" href="css/font-awesome.css" />
 <link rel="stylesheet" type="text/css" href="css/jquery.jscrollpane.css" />
 </head>
@@ -60,6 +61,7 @@
 			<a id="items-tab" href="#/items">Items</a>
 			<a id="suppliers-tab" href="#/suppliers">Suppliers</a>
 			<a id="pricing-tab" href="#/pricing">Pricing</a>
+			<a id="clients-tab" href="#/clients">Clients</a>
 		</div>
 		<div id="contents"></div>
 	</script>
@@ -508,7 +510,16 @@
 			'</div>');
 			}); %>
 		</div>
-		<div id="send-selected-items" data-in-progress="0">Edit Prices</div>
+		<div id="send-selected-items-container"> 
+			<div id="prices-categories">
+				<%
+				for(var i in categories_prices) {
+					print('<div class="price-category"><input type="checkbox" checked value="' + i + '" />' + categories_prices[i] + '</div>');
+				}	
+				%>
+			</div>
+			<div id="send-selected-items" data-in-progress="0">Edit Prices</div>
+		</div>
 	</script>
 
 	<script type="text/template" id="pricing-items-suppliers-table-view">
@@ -518,9 +529,11 @@
 				<div id="pricing-table-excel-container">
 					<div id="prepare-excel">Create Excel</div>
 					<div id="excel-prices-container">
-						<div class="excel-price-option"><input type="radio" name="excel-main-price" value="1" checked />Price 1</div>
-						<div class="excel-price-option"><input type="radio" name="excel-main-price" value="2" />Price 2</div>
-						<div class="excel-price-option"><input type="radio" name="excel-main-price" value="3" />Price 3</div>
+						<%
+						for(var price_category_id in SELECTED_PRICE_CATEGORIES) {
+							print('<div class="excel-price-option"><input type="radio" name="excel-main-price" value="' + price_category_id + '" checked />' + SELECTED_PRICE_CATEGORIES[price_category_id] + '</div>');
+						}	
+						%>
 					</div>
 					<div id="create-excel" data-in-progress="0">Create</div>
 				</div>
@@ -540,14 +553,12 @@
 			});
 			suppliers_header_table += '</tr></table>';
 
-			var prices_header_table =   '<table id="prices-header-table">' + 
-											'<tr>' + 
-												'<th class="pricing-table-price-1"><div>Price 1</div></th>' + 
-												'<th class="pricing-table-price-2"><div>Price 2</div></th>' +
-												'<th class="pricing-table-price-3"><div>Price 3</div></th>' +
-												'<th class="pricing-table-edit"><div><input type="checkbox" id="pricing-table-check-all" /></div></th>' +
-											'</tr>' +
-										'</table>';
+			var prices_header_table = '<table id="prices-header-table"><tr>';
+			for(var price_category_id in SELECTED_PRICE_CATEGORIES) {
+				prices_header_table += '<th class="pricing-table-price" data-price-category-id="' + price_category_id + '"><div>' + SELECTED_PRICE_CATEGORIES[price_category_id] + '</div></th>';
+			}	
+			prices_header_table += '<th class="pricing-table-edit"><div><input type="checkbox" id="pricing-table-check-all" /></div></th>';
+			prices_header_table += '</tr></table>';
 
 			var item_categories = { 101: 'Leafy', 102: 'Fruits', 103: 'Exotic', 104: 'OPG', 105: 'Vegetables' };
 			var items_body_table = '<table id="items-body-table">',
@@ -562,7 +573,7 @@
 
 				items_body_table += '<tr><td class="pricing-table-item-category" colspan="3"><div>' + item_categories[category] + '</div></td></tr>';
 				suppliers_body_table += '<tr><td colspan="' +  Object.keys(suppliers).length + '"><div>&nbsp;</div></td></tr>';
-				prices_body_table += '<tr><td colspan="4"><div>&nbsp;</div></td></tr>';
+				prices_body_table += '<tr><td colspan="' + (Object.keys(SELECTED_PRICE_CATEGORIES).length+1) + '"><div>&nbsp;</div></td></tr>';
 
 				// For all items in this category
 				for(var i in SELECTED_ITEMS[category]) {
@@ -627,24 +638,26 @@
 							suppliers_body_table += '</td>';
 						});
 
-						var price_1 = '',
-							price_2 = '',
-							price_3 = ''; 
-						
-						if(prices != '') {
+						var this_price = '';
+						for(var price_category_id in SELECTED_PRICE_CATEGORIES) {
+							this_price = '';
+
 							if(i in prices) {
 								if(item_varieties_info[j]['item_variety_id'] in prices[i]) {
 									if(item_varieties_info[j]['unit_id'] in prices[i][item_varieties_info[j]['item_variety_id']]) {
-										price_1 = prices[i][item_varieties_info[j]['item_variety_id']][item_varieties_info[j]['unit_id']]['price_1'];
-										price_2 = prices[i][item_varieties_info[j]['item_variety_id']][item_varieties_info[j]['unit_id']]['price_2'];
-										price_3 = prices[i][item_varieties_info[j]['item_variety_id']][item_varieties_info[j]['unit_id']]['price_3'];
+										if(price_category_id in prices[i][item_varieties_info[j]['item_variety_id']][item_varieties_info[j]['unit_id']]) {
+											this_price = prices[i][item_varieties_info[j]['item_variety_id']][item_varieties_info[j]['unit_id']][price_category_id]['price'];
+										}
 									}
 								}
 							}
-						}
-						prices_body_table += '<td class="pricing-table-price-1"><div><input type="text" data-price="1" value="' + price_1 + '" defaultValue="' + price_1 + '" /></div></td>';
-						prices_body_table += '<td class="pricing-table-price-2"><div><input type="text" data-price="2" value="' + price_2 + '" defaultValue="' + price_2 + '" /></div></td>';
-						prices_body_table += '<td class="pricing-table-price-3"><div><input type="text" data-price="3" value="' + price_3 + '" defaultValue="' + price_3 + '" /></div></td>'; 
+							prices_body_table += '<td class="pricing-table-price pricing-table-price-' + price_category_id + '" id="prices-body-table-col-' + i + '-' + item_varieties_info[j]['item_variety_id'] + '-' + item_varieties_info[j]['unit_id'] + '-' + price_category_id + '" data-price-category-id="' + price_category_id + '"><div><input type="text" value="' + this_price + '" defaultValue="' + this_price + '" /></div>';
+							if(this_price != '') {
+								prices_body_table += '<div class="aalgro-price-ts timeago" title="' + new Date(prices[i][item_varieties_info[j]['item_variety_id']][item_varieties_info[j]['unit_id']][price_category_id]['ts']*1000).toISOString() + '"></div>';
+							}
+							prices_body_table += '</td>';
+						}	
+
 						prices_body_table += '<td class="pricing-table-edit"><div><input type="checkbox" /></div></td>';
 						
 						items_body_table += '</tr>';
@@ -655,7 +668,7 @@
 
 				items_body_table += '<tr><td class="pricing-table-item-category" colspan="3"><div>&nbsp;</div></td></tr>';
 				suppliers_body_table += '<tr><td colspan="' +  Object.keys(suppliers).length + '"><div>&nbsp;</div></td></tr>';
-				prices_body_table += '<tr><td colspan="4"><div>&nbsp;</div></td></tr>';
+				prices_body_table += '<tr><td colspan="' + (Object.keys(SELECTED_PRICE_CATEGORIES).length+1) + '"><div>&nbsp;</div></td></tr>';
 			}
 			items_body_table += '</table>';
 			suppliers_body_table += '</table>';
@@ -679,6 +692,86 @@
 	</script>
 <!-- PRICING : END -->
 
+
+<!-- CLIENTS : START -->
+<!-- JS in clients.js -->
+	<script type="text/template" id="clients-view">
+		<div id="clients-tabs">
+			<a id="existing-clients" class="client-category-tab" href="#/clients/existing">Existing</a>
+			<a id="prospective-clients" class="client-category-tab" href="#/clients/prospective">Prospective</a>
+		</div>
+		<div id="client-category-contents"></div>
+	</script>
+
+	<script type="text/template" id="clients-loader-view">
+		<div id="all-clients-loader"><img src="img/486.gif" /></div>
+	</script>
+
+	<script type="text/template" id="clients-category-view">
+		<% if(clients.length == 0) { %>
+		<div id="no-clients">No clients found</div>
+		<table id="all-clients-table" style="display:none" data-category-id="<%= category_id %>">
+			<tr>
+				<th class="client-header-name">Name</th>
+				<th class="client-header-edit"></th>
+			</tr>
+		</table>
+		<% } else { %>
+		<div id="no-clients" style="display:none">No clients found</div>
+		<table id="all-clients-table" data-category-id="<%= category_id %>">
+			<tr>
+				<th class="client-header-name">Name</th>
+				<th class="clientclients-header-edit"></th>
+			</tr>
+			<% _.each(clients, function (client, index) { %>
+			<tr class="client-row" id="client-<%= client['client_id'] %>" data-client-id="<%= client['client_id'] %>">
+				<td class="client-header-name"><%= client['client_name'] %></td>
+				<td class="client-header-edit">
+					<div class="client-header-edit-buttons">
+						<span class="client-delete-button"><i class="fa fa-trash-o fa-lg" title="Delete Client"></i></span>
+						<span class="client-items-button"><i class="fa fa-leaf fa-lg" title="Client Items"></i></span>
+						<span class="client-info-button"><i class="fa fa-info fa-lg" title="Show Client Information"></i></span>
+					</div>
+					<img style="display:none" class="client-local-loader" src="img/486.gif" />
+					<div class="client-confirm-delete">
+						<div class="client-confirm-delete-header">Delete Client ?</div>
+						<div class="client-confirm-delete-controls">
+							<div class="client-confirm-delete-yes">Yes</div>
+							<div class="client-confirm-delete-no">No</div>
+						</div>
+					</div>
+				</td>
+			</tr>
+			<% }); %>
+		</table>
+		<% } %>
+		<div id="add-save-more-clients">
+			<div id="add-more-clients">Add Client</div>
+			<div id="save-new-clients" data-in-progress="0">Save</div>
+		</div>
+		<div id="add-save-more-clients-error">Errors were found</div>
+	</script>
+
+	<script type="text/template" id="new-client-view">
+		<div class="new-client-container">
+			<div class="new-client-form-input">
+				<label>Name</label>
+				<input type="text" class="new-client-name" />
+			</div>
+			<div class="new-client-form-input">
+				<label>Phone</label>
+				<input type="text" class="new-client-phone" />
+			</div>
+			<div class="new-client-form-input">
+				<label>Address</label>
+				<textarea class="new-client-address"></textarea>
+			</div>
+			<div class="new-client-error">Error</div>
+			<div class="new-client-delete"><i class="fa fa-trash-o fa-lg" title="Delete Client"></i></div>
+		</div>
+	</script>
+<!-- CLIENTS : END -->
+
 <script type="text/javascript" src="js/lib/jquery-2.0.3.min.js"></script>
 <script type="text/javascript" src="js/lib/underscore-1.5.1.min.js"></script>
 <script type="text/javascript" src="js/lib/backbone-1.0.0.min.js"></script>
@@ -688,6 +781,7 @@
 <script type="text/javascript" src="js/items.js"></script>
 <script type="text/javascript" src="js/suppliers.js"></script>
 <script type="text/javascript" src="js/pricing.js"></script>
+<script type="text/javascript" src="js/clients.js"></script>
 <script type="text/javascript" src="js/index.js"></script>
 
 </body>

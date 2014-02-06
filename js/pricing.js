@@ -4,6 +4,7 @@ var pricing_loader_view,
 
 
 var PRICING_ITEMS = [],
+	SELECTED_PRICE_CATEGORIES = {},
 	SELECTED_ITEMS = { '101': {}, '102': {}, '103': {}, '104': {}, '105': {} };
 
 
@@ -27,10 +28,12 @@ var PricingLoaderView = Backbone.View.extend({
 				
 				if(response.error == 0) {
 					SELECTED_ITEMS = { '101': {}, '102': {}, '103': {}, '104': {}, '105': {} };
+					SELECTED_PRICE_CATEGORIES = {},
 					
-					PRICING_ITEMS = response.data; 
+					PRICING_ITEMS = response.data.items,
 					pricing_items_view = new PricingItemsView({ 
-																	items: response.data                
+																	items: response.data.items,
+																	price_categories:  response.data.price_categories,               
 																});
 					pricing_items_view.render();
 				}
@@ -46,11 +49,12 @@ var PricingItemsView = Backbone.View.extend({
 	render: function () {
 		var template = _.template(
 									$("#pricing-items-view").html(), {
-										categories_items: this.options['items']
+										categories_items: this.options['items'],
+										categories_prices: this.options['price_categories']
 								});
 		this.$el.html(template); 
 
-		$("#send-selected-items").css({'left': ($("#pricing-items").offset().left + $("#pricing-items").outerWidth() + 30) + 'px', 'top': $("#pricing-items").offset().top + 'px' });
+		$("#send-selected-items-container").css({'left': ($("#pricing-items").offset().left + $("#pricing-items").outerWidth() + 30) + 'px', 'top': $("#pricing-items").offset().top + 'px' });
 	},
 	events: {
 		'click .pricing-item-category-check-all': 'wholeCategorySelection',
@@ -65,13 +69,13 @@ var PricingItemsView = Backbone.View.extend({
 			$(".pricing-item-category-" + category_id).find(".pricing-item-category-item").attr('data-chosen', 1).addClass('pricing-item-category-item-chosen');
 			
 			if($('.pricing-item-category-item-chosen').length > 0) {
-				$("#send-selected-items").show();
+				$("#send-selected-items-container").show();
 			}
 		}
 		else if(checked == false) {
 			$(".pricing-item-category-" + category_id).find(".pricing-item-category-item").attr('data-chosen', 0).removeClass('pricing-item-category-item-chosen');
 			if($('.pricing-item-category-item-chosen').length == 0) {
-				$("#send-selected-items").hide();
+				$("#send-selected-items-container").hide();
 			}
 		}
 	},
@@ -81,14 +85,14 @@ var PricingItemsView = Backbone.View.extend({
 			$(e.currentTarget).removeClass('pricing-item-category-item-chosen');
 
 			if($('.pricing-item-category-item-chosen').length == 0) {
-				$("#send-selected-items").hide();
+				$("#send-selected-items-container").hide();
 			}
 		}
 		else {
 			$(e.currentTarget).attr('data-chosen', 1);
 			$(e.currentTarget).addClass('pricing-item-category-item-chosen');
 
-			$("#send-selected-items").show();
+			$("#send-selected-items-container").show();
 		}
 	},
 	sendSelectedItems: function () {
@@ -103,11 +107,15 @@ var PricingItemsView = Backbone.View.extend({
 		});
 		PRICING_ITEMS = []; 
 
+		$(".price-category input[type='checkbox']:checked").each(function () {
+			SELECTED_PRICE_CATEGORIES[$(this).val()] = $(this).parent().text();
+		});
+
 		$("#send-selected-items").text('Processing ..').css('opacity', '0.5').attr('data-in-progress', '1');
 		Backbone.ajax({
 			type: 'GET',
 			url: 'controller.php',
-			data: { command: 'GetSuppliersforPricing', selected_items: selected_items },
+			data: { command: 'GetSuppliersforPricing', selected_items: selected_items, selected_price_categories: SELECTED_PRICE_CATEGORIES },
 			dataType: 'json',
 			success: function (response) {
 				$("#send-selected-items").text('Edit Prices').css('opacity', '1').attr('data-in-progress', '0');
@@ -282,24 +290,14 @@ var PricingItemsSuppliersTableView = Backbone.View.extend({
 			edited_price = {},
 			parent_row;
 
-		$("#prices-body-table tr").has(".edited-price").each(function () {
+		$(".edited-price").each(function () {
 			edited_price = {};
-			parent_row = $(this);
+			parent_row = $(this).closest('tr');
 			edited_price.item_id = parent_row.attr('data-item-id');
 			edited_price.item_variety_id = parent_row.attr('data-item-variety-id');
 			edited_price.unit_id = parent_row.attr('data-unit-id');
-
-			if(parent_row.find(".pricing-table-price-1 input[type='text']")) {
-				edited_price.price_1 = parent_row.find(".pricing-table-price-1 input[type='text']").val();
-			}
-
-			if(parent_row.find(".pricing-table-price-2 input[type='text']")) {
-				edited_price.price_2 = parent_row.find(".pricing-table-price-2 input[type='text']").val();
-			}
-
-			if(parent_row.find(".pricing-table-price-3 input[type='text']")) {
-				edited_price.price_3 = parent_row.find(".pricing-table-price-3 input[type='text']").val();
-			}
+			edited_price.price_category_id = $(this).closest('td').attr('data-price-category-id');
+			edited_price.price = $(this).val();
 
 			edited_prices.push(edited_price);
 		});
@@ -318,22 +316,16 @@ var PricingItemsSuppliersTableView = Backbone.View.extend({
 
 					$(".edited-price").removeClass('edited-price');
 					
-					for(var i in response.data.prices) {
-						for(var j in response.data.prices[i]) {
-							for(var k in response.data.prices[i][j]) {
-								if('price_1' in response.data.prices[i][j][k]) {
-									$("#prices-body-table-row-" + i + '-' + j + '-' + k).find(".pricing-table-price-1 input[type='text']").val(response.data.prices[i][j][k]['price_1']);
-									$("#prices-body-table-row-" + i + '-' + j + '-' + k).find(".pricing-table-price-1 input[type='text']").attr('defaultValue', response.data.prices[i][j][k]['price_1']);
-								}
-
-								if('price_2' in response.data.prices[i][j][k]) {
-									$("#prices-body-table-row-" + i + '-' + j + '-' + k).find(".pricing-table-price-2 input[type='text']").val(response.data.prices[i][j][k]['price_2']);
-									$("#prices-body-table-row-" + i + '-' + j + '-' + k).find(".pricing-table-price-2 input[type='text']").attr('defaultValue', response.data.prices[i][j][k]['price_2']);
-								}
-
-								if('price_3' in response.data.prices[i][j][k]) {
-									$("#prices-body-table-row-" + i + '-' + j + '-' + k).find(".pricing-table-price-3 input[type='text']").val(response.data.prices[i][j][k]['price_3']);
-									$("#prices-body-table-row-" + i + '-' + j + '-' + k).find(".pricing-table-price-3 input[type='text']").attr('defaultValue', response.data.prices[i][j][k]['price_3']);
+					var target_td;
+					for(var i in response.data) {
+						for(var j in response.data[i]) {
+							for(var k in response.data[i][j]) {
+								for(var l in response.data[i][j][k]) {
+									target_td = $("#prices-body-table-col-" + i + "-" + j + "-" + k + "-" + l);
+									target_td.find("input[type='text']").val(response.data[i][j][k][l]['price']).attr('defaultValue', response.data[i][j][k][l]['price']);
+									target_td.find(".aalgro-price-ts").remove();
+									target_td.append('<div class="aalgro-price-ts timeago" title="' + new Date(response.data[i][j][k][l]['ts']*1000).toISOString() + '"></div>');
+									target_td.find(".aalgro-price-ts").timeago();
 								}
 							}
 						}

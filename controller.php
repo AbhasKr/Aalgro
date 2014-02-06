@@ -140,6 +140,8 @@ try {
 
 			break;
 
+		
+		/* Pricing */
 		case 'GetItemsforPricing':
 			$leafy = '';
 			
@@ -155,7 +157,11 @@ try {
 			$vegetables = array();
 			$vegetables['101'] = array('item_name' => 'Ginger', 'item_units' => array('101' => 'Kg', '103' => 'Bag'), 'item_varieties' => array('101' => '', '102' => 'Ginger A', '103' => 'Ginger B'));
 
-			echo json_encode(array('error' => 0, 'data' => array('101' => $leafy, '102' => $fruits, '103' => $exotic, '104' => $opg, '105' => $vegetables)));
+			$items = array('101' => $leafy, '102' => $fruits, '103' => $exotic, '104' => $opg, '105' => $vegetables);
+
+			$price_categories = array('101' => 'FXD', '102' => 'VAR', '103' => 'WEB');
+
+			echo json_encode(array('error' => 0, 'data' => array('items' => $items, 'price_categories' => $price_categories)));
 
 			break;
 
@@ -239,15 +245,15 @@ try {
 
 			$prices = array();
 			$prices['101'] = array('101' => array(
-												'101' => array('price_1' => 11, 'price_2' => 12, 'price_3' => 13), 
-												'103' => array('price_1' => 14, 'price_2' => 15, 'price_3' => 16)
+												'101' => array('101' => array('price' => 11, 'ts' => '1390471716'), '102' => array('price' => 12, 'ts' => '1390471716'), '103' => array('price' => 13, 'ts' => '1390471716')), 
+												'103' => array('101' => array('price' => 14, 'ts' => '1390471716'), '102' => array('price' => 15, 'ts' => '1390471716'), '103' => array('price' => 16, 'ts' => '1390471716'))
 												)
 							);
 			$prices['104'] = array('107' => array(
-												'101' => array('price_1' => 17, 'price_2' => 18, 'price_3' => 19)
+												'101' => array('101' => array('price' => 17, 'ts' => '1390471716'), '102' => array('price' => 18, 'ts' => '1390471716'), '103' => array('price' => 19, 'ts' => '1390471716'))
 												),
 									'108' => array(
-												'101' => array('price_1' => 20, 'price_2' => 21, 'price_3' => 22)
+												'101' => array('101' => array('price' => 20, 'ts' => '1390471716'), '102' => array('price' => 21, 'ts' => '1390471716'), '103' => array('price' => 22, 'ts' => '1390471716'))
 												)
 							);
 		
@@ -258,15 +264,15 @@ try {
 		case 'SaveAalgroPrices':
 			$prices = array();
 			$prices['101'] = array('101' => array(
-												'101' => array('price_1' => 111, 'price_2' => 112, 'price_3' => 113), 
-												'103' => array('price_1' => 114)
+												'101' => array('101' => array('price' => 911, 'ts' => '1390644516'), '102' => array('price' => 912, 'ts' => '1390644516'), '103' => array('price' => 913, 'ts' => '1390644516')), 
+												'103' => array('101' => array('price' => 914, 'ts' => '1390644516'), '102' => array('price' => 915, 'ts' => '1390644516'), '103' => array('price' => 916, 'ts' => '1390644516'))
 												)
 							);
 			$prices['104'] = array('107' => array(
-												'101' => array('price_1' => 117, 'price_2' => 118, 'price_3' => 119)
+												'101' => array('101' => array('price' => 917, 'ts' => '1390644516'), '102' => array('price' => 918, 'ts' => '1390644516'), '103' => array('price' => 919, 'ts' => '1390644516'))
 												),
 									'108' => array(
-												'101' => array('price_2' => 121, 'price_3' => 122)
+												'101' => array('101' => array('price' => 920, 'ts' => '1390644516'), '102' => array('price' => 921, 'ts' => '1390644516'), '103' => array('price' => 922, 'ts' => '1390644516'))
 												)
 							);
 			echo json_encode(array('error' => 0, 'data' => array('prices' => $prices)));
@@ -277,6 +283,25 @@ try {
 			echo json_encode(array('error' => 0, 'data' => array('name' => '123.xls')));
 
 			break;
+
+
+		/* Suppliers */
+		case 'GetClientsByCategory':
+			$category_id = $_REQUEST['category_id'];
+			
+			$clients = array();
+			$clients[] = array('client_id' => 101, 'client_name' => 'Rama');
+			$clients[] = array('client_id' => 102, 'client_name' => 'Krishna');
+			$clients[] = array('client_id' => 103, 'client_name' => 'Muthuswamy');
+			$clients[] = array('client_id' => 104, 'client_name' => 'Veera');
+			echo json_encode(array('error' => 0, 'data' => array('clients' => $clients, 'category_id' => $category_id)));
+			
+			break;
+
+		case 'DeleteClient':
+			echo json_encode(array('error' => 0));
+			
+			break;	
 	}
 }
 catch(Exception $e) {
